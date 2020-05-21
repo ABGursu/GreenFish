@@ -527,6 +527,8 @@ void Thread::search() {
           && !Threads.stop
           && !mainThread->stopOnPonderhit)
       {
+          // Compare the current score with the best score from the previous search
+          // and the former 4 iterations, and adjust time accordingly.
           double fallingEval = (332 +  6 * (mainThread->bestPreviousScore - bestValue)
                                     +  6 * (mainThread->iterValue[iterIdx]  - bestValue)) / 704.0;
           fallingEval = Utility::clamp(fallingEval, 0.5, 1.5);
@@ -535,20 +537,28 @@ void Thread::search() {
           timeReduction = lastBestMoveDepth + 9 < completedDepth ? 1.94 : 0.91;
           double reduction = (1.41 + mainThread->previousTimeReduction) / (2.27 * timeReduction);
 
-          // Use part of the gained time from a previous stable move for the current move
+          // Allocate some more time if the best move changes frequently
           for (Thread* th : Threads)
-          {
-              totBestMoveChanges += th->bestMoveChanges;
-              th->bestMoveChanges = 0;
-          }
+              totBestMoveChanges += th->bestMoveChanges.exchange(0, std::memory_order_relaxed);
           double bestMoveInstability = 1 + totBestMoveChanges / Threads.size();
 
           TimePoint elapsedT = Time.elapsed();
           TimePoint optimumT = Time.optimum();
 
           // Stop the search if we have only one legal move, or if available time elapsed
-          if (   (rootMoves.size() == 1 && (elapsedT > optimumT / 16))
-              || elapsedT > optimumT * fallingEval * reduction * bestMoveInstability)
+          // Now calculate if time is over
+          bool timeOver = Time.elapsed() > Time.optimum() * fallingEval * reduction * bestMoveInstability;
+
+          // Only one legal move, however, we want to search at least this depth
+          bool oneLegalMove = rootMoves.size() == 1 && completedDepth >= 4;
+
+          // Spend much less time in a TB root position and syzygy fast play mode
+          bool syzygyFastPlay =   TB::RootInTB
+                               && Options["SyzygyFastPlay"]
+                               && Time.elapsed() > Time.optimum() / 10;
+
+          // Can we stop searching now?
+          if (timeOver || oneLegalMove || syzygyFastPlay)
           {
               // If we are allowed to ponder do not stop the search now but
               // keep pondering until the GUI sends "ponderhit" or "stop".

@@ -3,15 +3,15 @@
 [![Build Status](https://travis-ci.org/jhellis3/Stockfish.svg?branch=crystal)](https://travis-ci.org/jhellis3/Stockfish)
 [![Build status](https://ci.appveyor.com/api/projects/status/r6qwl1mnufng39e1/branch/crystal?svg=true)](https://ci.appveyor.com/project/jhellis3/stockfish/branch/crystal)
 
-Crystal is a UCI chess engine derived from [Stockfish](https://stockfishchess.org).
+GreenFish is a UCI chess engine derived from [Stockfish](https://stockfishchess.org).
 
-Crystal seeks to address the following issues where chess engines often have trouble:
+GreenFish seeks to address the following issues where chess engines often have trouble:
 
     1) Positional or tactical blindness due to over reductions or over pruning.
     2) Draw blindess due to the move horizon (50 move rule).
     3) Displayed PV reliability.
 
-A few examples of what Crystal can do:
+A few examples of what GreenFish can do:
 
     1) (Ba4+) 3B4/1r2p3/r2p1p2/bkp1P1p1/1p1P1PPp/p1P4P/PP1K4/3B4 w - -
     2) (Draw) 4K1bn/5p2/5PpB/6P1/3k4/8/8/7q w - -

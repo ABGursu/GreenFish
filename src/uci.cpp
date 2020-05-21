@@ -37,6 +37,8 @@ using namespace std;
 
 extern vector<string> setup_bench(const Position&, istream&);
 
+int maximumPly = 0; //from Kelly
+
 namespace {
 
   // FEN string of the initial position, normal chess
@@ -68,10 +70,24 @@ namespace {
 
     states = StateListPtr(new std::deque<StateInfo>(1)); // Drop old and create a new one
     pos.set(fen, Options["UCI_Chess960"], &states->back(), Threads.main());
-
+    int plies = 0;//from Kelly
     // Parse move list (if any)
     while (is >> token && (m = UCI::to_move(pos, token)) != MOVE_NONE)
     {
+	      //kelly begin
+	      plies++;
+	      if (plies > maximumPly)
+	      {
+	        LearningFileEntry currentLearningEntry;
+	        currentLearningEntry.depth = 0;
+	        currentLearningEntry.hashKey = pos.key();
+	        currentLearningEntry.move = m;
+	        currentLearningEntry.score = VALUE_NONE;
+	        currentLearningEntry.performance = 100;
+	        insertIntoOrUpdateLearningTable(currentLearningEntry,globalLearningHT);
+	        maximumPly = plies;
+	      }
+	      //Kelly end
         states->emplace_back();
         pos.do_move(m, states->back());
     }
@@ -169,8 +185,13 @@ namespace {
         }
         else if (token == "setoption")  setoption(is);
         else if (token == "position")   position(pos, is, states);
-        else if (token == "ucinewgame") { Search::clear(); elapsed = now(); } // Search::clear() may take some while
-    }
+        else if (token == "ucinewgame") {
+	        //from Kelly begin
+	        maximumPly = 0;
+	        setStartPoint();
+	        //from Kelly end
+	        Search::clear(); elapsed = now(); // Search::clear() may take some while
+        }
 
     elapsed = now() - elapsed + 1; // Ensure positivity to avoid a 'divide by zero'
 
@@ -212,8 +233,15 @@ void UCI::loop(int argc, char* argv[]) {
       is >> skipws >> token;
 
       if (    token == "quit"
-          ||  token == "stop")
-          Threads.stop = true;
+                ||  token == "stop")
+      	{
+      	  if ((token == "quit") && (!(Options["Read only learning"])))
+	        //from Kelly begin
+	        {
+	           writeLearningFile(HashTableType::global);//from Kelly
+	        }
+          //from Kelly end
+      	  Threads.stop = true;
 
       // The GUI sends 'ponderhit' to tell us the user has played the expected move.
       // So 'ponderhit' will be sent if we were told to ponder on the same move the
@@ -236,7 +264,14 @@ void UCI::loop(int argc, char* argv[]) {
           if (Options["Clean Search"] == 1)
               Search::clear();
       }
-      else if (token == "ucinewgame") Search::clear();
+      else if (token == "ucinewgame")
+      {
+	      //from Kelly begin
+	      maximumPly = 0;
+	      setStartPoint();
+	      //from Kelly end
+	      Search::clear();
+      }
       else if (token == "isready")    sync_cout << "readyok" << sync_endl;
 
       // Additional custom non-UCI commands, mainly for debugging.

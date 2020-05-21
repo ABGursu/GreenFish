@@ -83,6 +83,7 @@ void init(OptionsMap& o) {
   o["Syzygy50MoveRule"]      << Option(true);
   o["SyzygyFastPlay"]        << Option(false);
   o["SyzygyProbeLimit"]      << Option(7, 0, 7);
+  o["Read only learning"]      << Option(false);
 }
 
 

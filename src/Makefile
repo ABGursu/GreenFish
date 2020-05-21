@@ -23,9 +23,9 @@
 
 ### Executable name
 ifeq ($(COMP),mingw)
-EXE = crystal.exe
+EXE = greenfish.exe
 else
-EXE = crystal
+EXE = greenfish
 endif
 
 ### Installation dir definitions

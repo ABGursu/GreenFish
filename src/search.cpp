@@ -255,7 +255,7 @@ void MainThread::search() {
   Thread* bestThread = this;
 
   // Check if there are threads with a better score than main thread
-  if (   (Options["MultiPV"] == 1 || Limits.mate)
+  if (    int(Options["MultiPV"]) == 1 || Limits.mate)
       && !Limits.depth
       &&  rootMoves[0].pv[0] != MOVE_NONE)
   {
@@ -332,17 +332,17 @@ void Thread::search() {
   if (mainThread)
   {
       if (mainThread->bestPreviousScore == VALUE_INFINITE)
-          for (int i=0; i<4; ++i)
+          for (int i = 0; i < 4; ++i)
               mainThread->iterValue[i] = VALUE_ZERO;
-      else
-          for (int i=0; i<4; ++i)
+      else          
+          for (int i = 0; i < 4; ++i)
               mainThread->iterValue[i] = mainThread->bestPreviousScore;
   }
   
   std::copy(&lowPlyHistory[2][0], &lowPlyHistory.back().back() + 1, &lowPlyHistory[0][0]);
   std::fill(&lowPlyHistory[MAX_LPH - 2][0], &lowPlyHistory.back().back() + 1, 0);
 
-  size_t multiPV = Options["MultiPV"];
+  size_t multiPV = size_t(Options["MultiPV"]);
 
   multiPV = std::min(multiPV, rootMoves.size());
   ttHitAverage = ttHitAverageWindow * ttHitAverageResolution / 2;
@@ -502,8 +502,8 @@ void Thread::search() {
       {
           // Compare the current score with the best score from the previous search
           // and the former 4 iterations, and adjust time accordingly.
-          double fallingEval = (332 +  6 * (mainThread->bestPreviousScore - bestValue)
-                                    +  6 * (mainThread->iterValue[iterIdx]  - bestValue)) / 704.0;
+          double fallingEval = (332 + 6 * (mainThread->bestPreviousScore - bestValue)
+                                    + 6 * (mainThread->iterValue[iterIdx] - bestValue)) / 704.0;
           fallingEval = Utility::clamp(fallingEval, 0.5, 1.5);
 
           // If the bestMove is stable over several iterations, reduce time accordingly

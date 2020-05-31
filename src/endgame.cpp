@@ -430,7 +430,7 @@ ScaleFactor Endgame<KQKRPs>::operator()(const Position& pos) const {
 
   knight_file = FileBBB | FileGBB;
 
-  defended_pawns = pos.pieces(weakSide, PAWN) & pos.attacks_from<KING>(kingSq) & (safe_rank | knight_file) & ~(FileABB | FileHBB);
+  defended_pawns = pos.pieces(weakSide, PAWN) & attacks_bb<KING>(kingSq) & (safe_rank | knight_file) & ~(FileABB | FileHBB);
 
   if (defended_pawns)
       return SCALE_FACTOR_DRAW;
@@ -588,7 +588,7 @@ ScaleFactor Endgame<KRPKB>::operator()(const Position& pos) const {
       // the corner
       if (   rk == RANK_6
           && distance(psq + 2 * push, ksq) <= 1
-          && (PseudoAttacks[BISHOP][bsq] & (psq + push))
+          && (attacks_bb<BISHOP>(bsq) & (psq + push))
           && distance<File>(bsq, psq) >= 2)
           return ScaleFactor(8);
   }
@@ -723,14 +723,14 @@ ScaleFactor Endgame<KBPPKB>::operator()(const Position& pos) const {
     if (   ksq == blockSq1
         && opposite_colors(ksq, wbsq)
         && (   bbsq == blockSq2
-            || (pos.attacks_from<BISHOP>(blockSq2) & pos.pieces(weakSide, BISHOP))
+            || (attacks_bb<BISHOP>(blockSq2, pos.pieces()) & pos.pieces(weakSide, BISHOP))
             || distance<Rank>(psq1, psq2) >= 2))
         return SCALE_FACTOR_DRAW;
 
     else if (   ksq == blockSq2
              && opposite_colors(ksq, wbsq)
              && (   bbsq == blockSq1
-                 || (pos.attacks_from<BISHOP>(blockSq1) & pos.pieces(weakSide, BISHOP))))
+                 || (attacks_bb<BISHOP>(blockSq1, pos.pieces()) & pos.pieces(weakSide, BISHOP))))
         return SCALE_FACTOR_DRAW;
     else
         return SCALE_FACTOR_NONE;

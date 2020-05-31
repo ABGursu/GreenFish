@@ -255,7 +255,7 @@ void MainThread::search() {
   Thread* bestThread = this;
 
   // Check if there are threads with a better score than main thread
-  if (    int(Options["MultiPV"]) == 1 || Limits.mate)
+  if (    int(Options["MultiPV"]) == 1
       && !Limits.depth
       &&  rootMoves[0].pv[0] != MOVE_NONE)
   {

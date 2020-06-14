@@ -153,6 +153,7 @@ namespace {
                 score -=   Isolated
                          + WeakUnopposed * !opposed;
         }
+        
         else if (backward)
             score -=   Backward
                      + WeakUnopposed * !opposed;
